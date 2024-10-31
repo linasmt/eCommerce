@@ -1,0 +1,310 @@
+openapi: 3.0.1
+info:
+  title: API E-commerce
+  description: API pour l'inscription, la connexion, et la recherche de produits sur un site e-commerce
+  version: 1.0.0
+
+paths:
+  /auth/signup:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      description: Permet à un utilisateur de s'inscrire en fournissant son nom, prénom, âge, adresse email, et un mot de passe.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: Prénom de l'utilisateur
+                last_name:
+                  type: string
+                  description: Nom de famille de l'utilisateur
+                age:
+                  type: integer
+                  description: Âge de l'utilisateur
+                email:
+                  type: string
+                  format: email
+                  description: Adresse email de l'utilisateur
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe de l'utilisateur
+              required:
+                - first_name
+                - last_name
+                - age
+                - email
+                - password
+      responses:
+        '201':
+          description: Utilisateur inscrit avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Inscription réussie"
+        '400':
+          description: Requête invalide, l'email est déjà utilisé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur : cet email est déjà utilisé. Veuillez en essayer un autre."
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur : veuillez réessayer plus tard."
+
+  /auth/login:
+    post:
+      summary: Connexion d'un utilisateur
+      description: Permet à un utilisateur de se connecter avec son adresse email et son mot de passe.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Adresse email de l'utilisateur
+                password:
+                  type: string
+                  format: password
+                  description: Mot de passe de l'utilisateur
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Connexion réussie"
+        '401':
+          description: Identifiants incorrects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur : identifiants incorrects. Veuillez vérifier vos informations de connexion."
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur : veuillez réessayer plus tard."
+  /auth/logout:
+    post:
+      summary: Déconnexion d'un utilisateur
+      description: Invalide le jeton JWT de l'utilisateur, le déconnectant du service.
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+          description: "Jeton JWT de l'utilisateur, au format Bearer token"
+      responses:
+        '200':
+          description: Déconnexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Déconnexion réussie"
+        '401':
+          description: Utilisateur non authentifié (jeton manquant ou invalide)
+
+  /products/search:
+    get:
+      summary: Recherche de produits
+      description: Permet à un utilisateur de rechercher des produits en fonction d'un nom de produit.
+      parameters:
+        - in: query
+          name: name
+          required: true
+          schema:
+            type: string
+          description: Nom du produit à rechercher
+      responses:
+        '200':
+          description: Résultats de la recherche
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 123
+                        name:
+                          type: string
+                          example: "Nom du produit"
+                        price:
+                          type: number
+                          format: float
+                          example: 29.99
+                        description:
+                          type: string
+                          example: "Description du produit"
+        '404':
+          description: Aucun produit trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aucun produit trouvé pour le nom spécifié."
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur : veuillez réessayer plus tard."
+  /products/filter:
+    get:
+      summary: Filtrer les produits par catégorie
+      description: Permet de filtrer les produits par une catégorie spécifique.
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema:
+            type: integer
+          description: Id de la catégorie des produits à filtrer
+      responses:
+        '200':
+          description: Résultats des produits filtrés par catégorie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 123
+                        name:
+                          type: string
+                          example: "Nom du produit"
+                        category:
+                          type: string
+                          example: "Catégorie"
+                        price:
+                          type: number
+                          format: float
+                          example: 29.99
+                        description:
+                          type: string
+                          example: "Description du produit"
+        '404':
+          description: Aucun produit trouvé dans cette catégorie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Aucun produit trouvé dans la catégorie spécifiée."
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur : veuillez réessayer plus tard."
+  /categories:
+    get:
+      summary: Obtenir la liste des catégories
+      description: Renvoie une liste de toutes les catégories de produits disponibles.
+      responses:
+        '200':
+          description: Liste des catégories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: "Mode"
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Erreur serveur : impossible de récupérer les catégories pour le moment."
+
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
